@@ -1,0 +1,16 @@
+namespace:
+  name: home-assistant
+
+configmap:
+
+deployment:
+
+ingress:
+
+netpol:
+
+pvc:
+
+secret:
+
+service:
