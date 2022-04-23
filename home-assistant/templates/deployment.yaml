@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name }}
+  namespace: {{ .Values.namespace.name | quote }}
+  labels:
+    app: home-assistant
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  # SELECTORS
+  selector:
+    matchLabels:
+      app: home-assistant
+  template:
+    metadata:
+      labels:
+        app: home-assistant
+    spec:
+      # IMAGES
+      containers:
+      - name: home-assistant
+        image: {{ .Values.deployment.image }}
+        # PORTS
+        ports:
+        - name: http
+          containerPort: 8123
+          protocol: TCP
+        # - name: https
+        #   containerPort: 8920
+        #   protocol: TCP
+{{- if .Values.persist }}
+        # MOUNTS
+        volumeMounts:
+        {{- range .Values.pvc }}
+        - name: {{ .name }}
+          mountPath: {{ .mount }}
+          readOnly: {{ .readOnly }}
+        {{- end }}
+      # VOLUMES
+      volumes:
+      {{- range .Values.pvc }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .name }}
+          readOnly: {{ .readOnly }}
+      {{- end }}
+{{- end }}

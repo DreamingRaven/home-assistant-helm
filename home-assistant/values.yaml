@@ -1,16 +1,27 @@
 namespace:
   name: home-assistant
+  create: true
 
 configmap:
 
 deployment:
+  name: home-assistant
+  image: "ghcr.io/home-assistant/home-assistant:stable"
+  replicas: 1
 
 ingress:
+  name: home-assistant-ingress
+  host: home.deepcypher.me
 
 netpol:
+  name: home-assistant-netpol
 
 pvc:
 
 secret:
 
 service:
+  name: home-assistant-service
+
+labels:
+  app: home-assistant
