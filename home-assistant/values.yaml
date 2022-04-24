@@ -7,21 +7,38 @@ configmap:
 deployment:
   name: home-assistant
   image: "ghcr.io/home-assistant/home-assistant:stable"
-  replicas: 1
+  replicas: 1 # have not figured out how home-assistant would work in HA
 
+# can configure our own ingress resource or if you would rather make your own
+# since atm you have to do first time setup from the GUI it is disabled by default
+# so you can kubectl port-forward first to set up then enabled ingress when it is done
 ingress:
+  enable: false
   name: home-assistant-ingress
   host: home.deepcypher.me
 
 netpol:
   name: home-assistant-netpol
 
+# decide whether to use a persistent volume or if this is just a proof of concept
+persist: false
 pvc:
+# You can configure as many PVCs as you would like to mount anywhere in the pod
+- name: home-assistant-config-pvc
+  mount: /config
+  storageClassName: home-assistant
+  volumeName: home-assistant-config-pv
+  readOnly: False
+  size: 10Gi
+  accessModes:
+  - ReadWriteOnce
 
+# TODO find some mechanism with which to bootstrap the initial user with secrets
 secret:
 
 service:
   name: home-assistant-service
 
+#TODO implement dynamic labeling to make things easier to categories and select
 labels:
   app: home-assistant
