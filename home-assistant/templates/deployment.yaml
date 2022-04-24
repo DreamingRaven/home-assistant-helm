@@ -6,6 +6,7 @@ metadata:
   labels:
     app: home-assistant
 spec:
+  # REPLICATION
   replicas: {{ .Values.deployment.replicas }}
   # SELECTORS
   selector:
@@ -16,32 +17,57 @@ spec:
       labels:
         app: home-assistant
     spec:
+      # SECURITY CONTEXT
+      securityContext:
+        # ENSURE CONTAINER CAN NEVER RUN AS ROOT
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 2000
+        fsGroup: 2000
+        fsGroupChangePolicy: "Always" #"OnRootMismatch"
+      initContainers:
+      - name: perm-sorter
+        image: busybox
+        command: ["/bin/sh"]
+        args: ["-c", "mkdir -p /var/run/s6 && chown -R 1000:2000 /var/run/s6"]
+        securityContext:
+          # temporarily enabling root to create and change files to the perms we need
+          runAsNonRoot: false
+          runAsUser: 0
+        volumeMounts:
+        - name: s6-overlay
+          mountPath: /var/run/s6
       # IMAGES
       containers:
       - name: home-assistant
         image: {{ .Values.deployment.image }}
+        securityContext:
+          allowPrivilegeEscalation: false
         # PORTS
         ports:
         - name: http
           containerPort: 8123
           protocol: TCP
-        # - name: https
-        #   containerPort: 8920
-        #   protocol: TCP
-{{- if .Values.persist }}
         # MOUNTS
         volumeMounts:
+        - name: s6-overlay
+          mountPath: /var/run/s6
+        {{- if .Values.persist }}
         {{- range .Values.pvc }}
         - name: {{ .name }}
           mountPath: {{ .mount }}
           readOnly: {{ .readOnly }}
         {{- end }}
+        {{- end }}
       # VOLUMES
       volumes:
+      - name: s6-overlay
+        emptyDir: {}
+      {{- if .Values.persist }}
       {{- range .Values.pvc }}
       - name: {{ .name }}
         persistentVolumeClaim:
           claimName: {{ .name }}
           readOnly: {{ .readOnly }}
       {{- end }}
-{{- end }}
+      {{- end }}
