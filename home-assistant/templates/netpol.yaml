@@ -35,6 +35,6 @@ spec:
   # Also allow another overridable destination
   - to:
     - ipBlock:
-      cidr: {{ . }}
+        cidr: {{ . }}
   {{- end }}
 {{- end }}
