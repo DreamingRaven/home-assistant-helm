@@ -9,6 +9,16 @@ deployment:
   image: "ghcr.io/home-assistant/home-assistant:stable"
   replicas: 1 # have not figured out how home-assistant would work in HA
 
+netpol:
+  enable: true
+  name: home-assistant-netpol
+  # allow creates a policy to enable a specific network e.g for segmented
+  # networks with seperation of IOT devices otherwise home assistant will
+  # be blocked from accessing them from generic deny-all-local rules
+  allow:
+  # - 192.168.30.0/24
+  # - 192.168.1.0/24
+
 # can configure our own ingress resource or if you would rather make your own
 # since atm you have to do first time setup from the GUI it is disabled by default
 # so you can kubectl port-forward first to set up then enabled ingress when it is done
@@ -16,9 +26,6 @@ ingress:
   enable: false
   name: home-assistant-ingress
   host: home.deepcypher.me
-
-netpol:
-  name: home-assistant-netpol
 
 # decide whether to use a persistent volume or if this is just a proof of concept
 persist: false
